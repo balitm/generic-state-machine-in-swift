@@ -8,33 +8,33 @@
 
 import Foundation
 
-private func makeBackgroundQueue() -> NSOperationQueue {
-    let opQueue = NSOperationQueue()
-    opQueue.qualityOfService = .Background
+private func makeBackgroundQueue() -> OperationQueue {
+    let opQueue = OperationQueue()
+    opQueue.qualityOfService = .background
     opQueue.maxConcurrentOperationCount = 2
     return opQueue
 }
 private let backgroundQueue = makeBackgroundQueue()
 
-func afterDelayOfTimeInterval(delay: NSTimeInterval, performBlockOnMainQueue block: () -> ()) {
-    backgroundQueue.addOperationWithBlock {
-        NSThread.sleepForTimeInterval(delay)
-        NSOperationQueue.mainQueue().addOperationWithBlock {
+func afterDelayOfTimeInterval(_ delay: TimeInterval, performBlockOnMainQueue block: @escaping () -> ()) {
+    backgroundQueue.addOperation {
+        Thread.sleep(forTimeInterval: delay)
+        OperationQueue.main.addOperation {
             block()
         }
     }
 }
 
 private let asyncSimulationProgressGranularity = Float(1.0 / 50.0)
-func simulateAsyncOperationLastingSeconds<State: StateMachineState>(seconds: Int, forStateMachine stateMachine: StateMachine<State>, completionEventGenerator completionEvent: () -> State.EventType, progressEventGenerator progressEvent: (Float) -> State.EventType) {
+func simulateAsyncOperationLastingSeconds<State: StateMachineState>(_ seconds: Int, forStateMachine stateMachine: StateMachine<State>, completionEventGenerator completionEvent: @escaping () -> State.EventType, progressEventGenerator progressEvent: @escaping (Float) -> State.EventType) {
     let durationInSeconds = Double(seconds)
     let progressInterval = durationInSeconds * Double(asyncSimulationProgressGranularity)
-    let startTime = NSDate()
+    let startTime = Date()
     
     func rescheduleProgress() {
         afterDelayOfTimeInterval(progressInterval) {
-            let currentTime = NSDate()
-            let elapsedTimeInterval = currentTime.timeIntervalSinceDate(startTime)
+            let currentTime = Date()
+            let elapsedTimeInterval = currentTime.timeIntervalSince(startTime)
             let progress = Float(elapsedTimeInterval / durationInSeconds)
             stateMachine.processEvent(progressEvent(progress))
             // schedule another update unless it would put us past 100%

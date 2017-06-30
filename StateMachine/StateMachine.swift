@@ -9,40 +9,40 @@
 import Foundation
 
 protocol StateMachineState {
-    typealias EventType
+    associatedtype EventType
     
-    mutating func resetToInitialStateWithStateMachine(stateMachine: StateMachine<Self>)
+    mutating func resetToInitialState(with stateMachine: StateMachine<Self>)
     
-    mutating func transitionWithEvent(event: EventType) -> TransitionOutcome<Self>
+    mutating func transition(with event: EventType) -> TransitionOutcome<Self>
 
-    mutating func takePreTransitionActionForEvent(event: EventType, withStateMachine stateMachine: StateMachine<Self>)
-    mutating func takeEnterStateActionWithStateMachine(stateMachine: StateMachine<Self>)
-    mutating func takeExitStateActionWithStateMachine(stateMachine: StateMachine<Self>)
-    mutating func takePostTransitionActionForEvent(event: EventType, withStateMachine stateMachine: StateMachine<Self>)
+    mutating func takePreTransitionAction(for event: EventType, with stateMachine: StateMachine<Self>)
+    mutating func takeEnterStateAction(with stateMachine: StateMachine<Self>)
+    mutating func takeExitStateAction(with stateMachine: StateMachine<Self>)
+    mutating func takePostTransitionAction(for event: EventType, with stateMachine: StateMachine<Self>)
 }
 
 // Default action methods are no-ops
 extension StateMachineState {
-    mutating func takePreTransitionActionForEvent(event: EventType, withStateMachine stateMachine: StateMachine<Self>) {
+    mutating func takePreTransitionAction(for event: EventType, with stateMachine: StateMachine<Self>) {
         // override if there’s work to be done
     }
     
-    mutating func takeEnterStateActionWithStateMachine(stateMachine: StateMachine<Self>)  {
+    mutating func takeEnterStateAction(with stateMachine: StateMachine<Self>)  {
         // override if there’s work to be done
     }
     
-    mutating func takeExitStateActionWithStateMachine(stateMachine: StateMachine<Self>)  {
+    mutating func takeExitStateAction(with stateMachine: StateMachine<Self>)  {
         // override if there’s work to be done
     }
     
-    mutating func takePostTransitionActionForEvent(event: EventType, withStateMachine stateMachine: StateMachine<Self>)  {
+    mutating func takePostTransitionAction(for event: EventType, with stateMachine: StateMachine<Self>)  {
         // override if there’s work to be done
     }
 }
 
 enum TransitionOutcome<State: StateMachineState> {
-    case NewState(previousState: State)
-    case SameState
+    case newState(previousState: State)
+    case sameState
 }
 
 class StateMachine<State: StateMachineState> {
@@ -50,19 +50,19 @@ class StateMachine<State: StateMachineState> {
     
     init(state: State) {
         self.state = state
-        self.state.resetToInitialStateWithStateMachine(self)
+        self.state.resetToInitialState(with: self)
     }
 
-    func processEvent(event: State.EventType) {
-        state.takePreTransitionActionForEvent(event, withStateMachine: self)
-        let outcome = state.transitionWithEvent(event)
+    func processEvent(_ event: State.EventType) {
+        state.takePreTransitionAction(for: event, with: self)
+        let outcome = state.transition(with: event)
         switch outcome {
-        case .NewState(var previousState):
-            previousState.takeExitStateActionWithStateMachine(self)
-            state.takeEnterStateActionWithStateMachine(self)
-        case .SameState:
+        case .newState(var previousState):
+            previousState.takeExitStateAction(with: self)
+            state.takeEnterStateAction(with: self)
+        case .sameState:
             break
         }
-        state.takePostTransitionActionForEvent(event, withStateMachine: self)
+        state.takePostTransitionAction(for: event, with: self)
     }
 }

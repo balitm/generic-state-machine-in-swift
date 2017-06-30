@@ -14,86 +14,86 @@ protocol StenciltownViewController {
 
 struct StenciltownState: StateMachineState {
     enum State {
-        case Initial
-        case Fetching(progress: Float)
-        case Fetched
-        case Downloading(progress: Float)
-        case Downloaded
+        case initial
+        case fetching(progress: Float)
+        case fetched
+        case downloading(progress: Float)
+        case downloaded
     }
     
     enum Event {
-        case BeginFetch
-        case FetchProgress(progress: Float)
-        case FetchCompleted
-        case BeginDownload
-        case DownloadProgress(progress: Float)
-        case DownloadCompleted
-        case Reset
+        case beginFetch
+        case fetchProgress(progress: Float)
+        case fetchCompleted
+        case beginDownload
+        case downloadProgress(progress: Float)
+        case downloadCompleted
+        case reset
     }
     
-    private var viewController: StenciltownViewController
-    private var state: State
+    fileprivate var viewController: StenciltownViewController
+    fileprivate var state: State
     
     init(viewController: StenciltownViewController) {
         self.viewController = viewController
-        self.state = State.Initial
+        self.state = State.initial
     }
     
-    private func viewModelWithStateMachine(stateMachine: StateMachine<StenciltownState>) -> StenciltownViewModel {
+    fileprivate func viewModel(with stateMachine: StateMachine<StenciltownState>) -> StenciltownViewModel {
         switch state {
-        case .Initial:
-            return StenciltownViewModel(description: "", fetchOperation: { stateMachine.processEvent(.BeginFetch) } )
-        case .Fetching(let progress):
+        case .initial:
+            return StenciltownViewModel(description: "", fetchOperation: { stateMachine.processEvent(.beginFetch) } )
+        case .fetching(let progress):
             return StenciltownViewModel(description: "Fetching Description…", progressBarHidden: false, progressBarProgress: progress)
-        case .Fetched:
-            return StenciltownViewModel(description: "It’s a bunny", downloadButtonHidden: false, downloadPressOperation: { stateMachine.processEvent(.BeginDownload) })
-        case .Downloading(let progress):
+        case .fetched:
+            return StenciltownViewModel(description: "It’s a bunny", downloadButtonHidden: false, downloadPressOperation: { stateMachine.processEvent(.beginDownload) })
+        case .downloading(let progress):
             return StenciltownViewModel(description: "Downloading…", progressBarHidden: false, progressBarProgress: progress)
-        case .Downloaded:
+        case .downloaded:
             return StenciltownViewModel(description: "Isn’t it cute?")
         }
     }
     
-    mutating func resetToInitialStateWithStateMachine(stateMachine: StateMachine<StenciltownState>) {
-        self.state = State.Initial
-        viewController.viewModel = viewModelWithStateMachine(stateMachine)
+    mutating func resetToInitialState(with stateMachine: StateMachine<StenciltownState>) {
+        self.state = State.initial
+        viewController.viewModel = viewModel(with: stateMachine)
     }
     
-    mutating func transitionWithEvent(event: Event) -> TransitionOutcome<StenciltownState> {
+    mutating func transition(with event: Event) -> TransitionOutcome<StenciltownState> {
         let previousState = self
         switch (state, event) {
-        case (.Initial, .BeginFetch):
-            state = .Fetching(progress: 0.0)
-        case (.Fetching, .FetchProgress(let progress)):
-            state = .Fetching(progress: progress)
-            return .SameState
-        case (.Fetching, .FetchCompleted):
-            state = .Fetched
-        case (.Fetched, .BeginDownload):
-            state = .Downloading(progress: 0.0)
-        case (.Downloading, .DownloadProgress(let progress)):
-            state = .Downloading(progress: progress)
-            return .SameState
-        case (.Downloading, .DownloadCompleted):
-            state = .Downloaded
-        case (_, .Reset):
-            state = .Initial
+        case (.initial, .beginFetch):
+            state = .fetching(progress: 0.0)
+        case (.fetching, .fetchProgress(let progress)):
+            state = .fetching(progress: progress)
+            return .sameState
+        case (.fetching, .fetchCompleted):
+            state = .fetched
+        case (.fetched, .beginDownload):
+            state = .downloading(progress: 0.0)
+        case (.downloading, .downloadProgress(let progress)):
+            state = .downloading(progress: progress)
+            return .sameState
+        case (.downloading, .downloadCompleted):
+            state = .downloaded
+        case (_, .reset):
+            state = .initial
         default:
             // could conceivably transition to error state if we got an unexpected event, but for now just ignore it
-            return .SameState
+            return .sameState
         }
-        return .NewState(previousState: previousState)
+        return .newState(previousState: previousState)
     }
     
-    func takePreTransitionActionForEvent(event: Event, withStateMachine stateMachine: StateMachine<StenciltownState>) {
+    func takePreTransitionAction(for event: Event, with stateMachine: StateMachine<StenciltownState>) {
         switch event {
-        case .BeginFetch:
+        case .beginFetch:
             // For simulation, we schedule a progress update and a fetch completed. In reality we would start the async fetch and need to poke the state machine with actual progress.
-            simulateAsyncOperationLastingSeconds(5, forStateMachine: stateMachine, completionEventGenerator: { .FetchCompleted }, progressEventGenerator: { .FetchProgress(progress: $0) })
-        case .BeginDownload:
+            simulateAsyncOperationLastingSeconds(5, forStateMachine: stateMachine, completionEventGenerator: { .fetchCompleted }, progressEventGenerator: { .fetchProgress(progress: $0) })
+        case .beginDownload:
             // For simulation, we schedule a progress update and a download completed. In reality we would start the async fetch and need to poke the state machine with actual progress.
-            simulateAsyncOperationLastingSeconds(10, forStateMachine: stateMachine, completionEventGenerator: { .DownloadCompleted }, progressEventGenerator: { .DownloadProgress(progress: $0) })
-        case .Reset: // CCC, 11/7/2015. currently no way to trigger in the UI
+            simulateAsyncOperationLastingSeconds(10, forStateMachine: stateMachine, completionEventGenerator: { .downloadCompleted }, progressEventGenerator: { .downloadProgress(progress: $0) })
+        case .reset: // CCC, 11/7/2015. currently no way to trigger in the UI
             // CCC, 11/7/2015. purge the background queue?
             break
         default:
@@ -102,8 +102,8 @@ struct StenciltownState: StateMachineState {
         }
     }
     
-    mutating func takePostTransitionActionForEvent(event: Event, withStateMachine stateMachine: StateMachine<StenciltownState>) {
-        viewController.viewModel = viewModelWithStateMachine(stateMachine)
+    mutating func takePostTransitionAction(for event: Event, with stateMachine: StateMachine<StenciltownState>) {
+        viewController.viewModel = viewModel(with: stateMachine)
     }
 }
 
@@ -112,8 +112,8 @@ struct StenciltownViewModel {
     let downloadButtonHidden: Bool
     let progressBarHidden: Bool
     let progressBarProgress: Float
-    private let fetchOperation: (() -> Void)?
-    private let downloadPressOperation: (() -> Void)?
+    fileprivate let fetchOperation: (() -> Void)?
+    fileprivate let downloadPressOperation: (() -> Void)?
     var downloadButtonEnabled: Bool {
         return downloadPressOperation != nil
     }

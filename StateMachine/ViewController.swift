@@ -20,7 +20,7 @@ class ViewController: UIViewController, StenciltownViewController {
         }
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateView()
         viewModel?.beginFetch()
@@ -37,13 +37,13 @@ class ViewController: UIViewController, StenciltownViewController {
         if statusLabel.text != viewModel.stateDescription {
             statusLabel.text = viewModel.stateDescription
         }
-        downloadButton.hidden = viewModel.downloadButtonHidden
-        downloadButton.enabled = viewModel.downloadButtonEnabled
-        progressView.hidden = viewModel.progressBarHidden
+        downloadButton.isHidden = viewModel.downloadButtonHidden
+        downloadButton.isEnabled = viewModel.downloadButtonEnabled
+        progressView.isHidden = viewModel.progressBarHidden
         progressView.progress = viewModel.progressBarProgress
     }
     
-    @IBAction func download(sender: AnyObject) {
+    @IBAction func download(_ sender: AnyObject) {
         viewModel?.download()
     }
 }
