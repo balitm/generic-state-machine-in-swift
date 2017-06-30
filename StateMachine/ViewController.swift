@@ -47,4 +47,3 @@ class ViewController: UIViewController, StenciltownViewController {
         viewModel?.download()
     }
 }
-

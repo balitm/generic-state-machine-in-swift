@@ -14,6 +14,7 @@ private func makeBackgroundQueue() -> OperationQueue {
     opQueue.maxConcurrentOperationCount = 2
     return opQueue
 }
+
 private let backgroundQueue = makeBackgroundQueue()
 
 func afterDelayOfTimeInterval(_ delay: TimeInterval, performBlockOnMainQueue block: @escaping () -> ()) {
@@ -26,7 +27,11 @@ func afterDelayOfTimeInterval(_ delay: TimeInterval, performBlockOnMainQueue blo
 }
 
 private let asyncSimulationProgressGranularity = Float(1.0 / 50.0)
-func simulateAsyncOperationLastingSeconds<State: StateMachineState>(_ seconds: Int, forStateMachine stateMachine: StateMachine<State>, completionEventGenerator completionEvent: @escaping () -> State.EventType, progressEventGenerator progressEvent: @escaping (Float) -> State.EventType) {
+
+func simulateAsyncOperationLasting<State>(seconds: Int,
+                                          for stateMachine: StateMachine<State>,
+                                          completionEventGenerator completionEvent: @escaping () -> State.EventType,
+                                          progressEventGenerator progressEvent: @escaping (Float) -> State.EventType) {
     let durationInSeconds = Double(seconds)
     let progressInterval = durationInSeconds * Double(asyncSimulationProgressGranularity)
     let startTime = Date()

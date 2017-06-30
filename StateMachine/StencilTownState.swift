@@ -89,11 +89,12 @@ struct StenciltownState: StateMachineState {
         switch event {
         case .beginFetch:
             // For simulation, we schedule a progress update and a fetch completed. In reality we would start the async fetch and need to poke the state machine with actual progress.
-            simulateAsyncOperationLastingSeconds(5, forStateMachine: stateMachine, completionEventGenerator: { .fetchCompleted }, progressEventGenerator: { .fetchProgress(progress: $0) })
+            simulateAsyncOperationLasting(seconds: 5, for: stateMachine, completionEventGenerator: { .fetchCompleted }, progressEventGenerator: { .fetchProgress(progress: $0) })
         case .beginDownload:
             // For simulation, we schedule a progress update and a download completed. In reality we would start the async fetch and need to poke the state machine with actual progress.
-            simulateAsyncOperationLastingSeconds(10, forStateMachine: stateMachine, completionEventGenerator: { .downloadCompleted }, progressEventGenerator: { .downloadProgress(progress: $0) })
-        case .reset: // CCC, 11/7/2015. currently no way to trigger in the UI
+            simulateAsyncOperationLasting(seconds: 10, for: stateMachine, completionEventGenerator: { .downloadCompleted }, progressEventGenerator: { .downloadProgress(progress: $0) })
+        case .reset:
+            // CCC, 11/7/2015. currently no way to trigger in the UI
             // CCC, 11/7/2015. purge the background queue?
             break
         default:
